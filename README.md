@@ -1,4 +1,4 @@
-# Collection: A Generic Objects/Variables Holder and Iterator
+# Collection: A Generic PHP Objects/Variables Holder and Iterator
 A library to store variables in an iterator, support some operations like sorting and swapping elements. 
 
 ### Requirements
