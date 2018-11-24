@@ -223,7 +223,11 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     {
         $keys   = array_keys($this->list);
         $offset = array_pop($keys);
-        return $this->list[$offset];
+        if (array_key_exists($offset, $this->list)) {
+            return $this->list[$offset];
+        }
+        $null = null;
+        return $null;
     }
 
     /**
@@ -233,7 +237,11 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
     {
         $keys   = array_keys($this->list);
         $offset = array_shift($keys);
-        return $this->list[$offset];
+        if (array_key_exists($offset, $this->list)) {
+            return $this->list[$offset];
+        }
+        $null = null;
+        return $null;
     }
 
     /**
@@ -290,6 +298,35 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
      * @param $offset1
      * @param $offset2
      *
+     * @return $this
+     * @throws \Exception
+     */
+    public function swap($offset1, $offset2)
+    {
+        $pos1 = $this->offsetPosition($offset1);
+        $pos2 = $this->offsetPosition($offset2);
+        if ($pos1 === false || $pos2 === false) {
+            // offset does not exist
+            throw new \Exception("Trying to swap non exist offsets");
+        }
+        if ($pos1 == $pos2) {
+            return $this;
+        }
+        $temp           = $this[$offset1];
+        $this[$offset1] = $this[$offset2];
+        $this[$offset2] = $temp;
+
+        return $this;
+    }
+
+    /**
+     * Change the position of item at $offset1 in the internal array to be at
+     * the position of item at $offset2 and vise versa using re-order and refilling
+     * the array
+     *
+     * @param $offset1
+     * @param $offset2
+     *
      * @return self
      *
      * @throws \Exception
@@ -304,12 +341,6 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         }
         if ($pos1 == $pos2) {
             return $this;
-        }
-
-        $min = min($pos1, $pos2);
-        if ($min != $pos1) {
-            // make pos1 always the smaller
-            return $this->swap($offset2, $offset1);
         }
 
         $clone = clone $this;
@@ -328,23 +359,6 @@ class Collection implements \Iterator, \ArrayAccess, \Countable
         return $this;
     }
 
-    public function swap($offset1, $offset2)
-    {
-        $pos1 = $this->offsetPosition($offset1);
-        $pos2 = $this->offsetPosition($offset2);
-        if ($pos1 === false || $pos2 === false) {
-            // offset does not exist
-            throw new \Exception("Trying to swap non exist offsets");
-        }
-        if ($pos1 == $pos2) {
-            return $this;
-        }
-        $temp           = $this[$offset1];
-        $this[$offset1] = $this[$offset2];
-        $this[$offset2] = $temp;
-
-        return $this;
-    }
 
     /**
      * Get the item by internal pointer numeric position and not by the offset.
