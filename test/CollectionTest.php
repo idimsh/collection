@@ -114,95 +114,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         return $same;
     }
 
-    protected function isPhp56()
-    {
-        static $cache = null;
-        return $cache !== null ?
-          $cache :
-          ($cache = version_compare(PHP_VERSION, '5.6.0', '>=') && version_compare(PHP_VERSION, '7.0.0', '<'));
-    }
-
-    protected function isPhp70()
-    {
-        static $cache = null;
-        return $cache !== null ?
-          $cache :
-          ($cache = version_compare(PHP_VERSION, '7.0.0', '>=') && version_compare(PHP_VERSION, '7.1.0', '<'));
-    }
-
-    protected function isPhp71OrMore()
-    {
-        static $cache = null;
-        return $cache !== null ?
-          $cache :
-          ($cache = version_compare(PHP_VERSION, '7.1.0', '>='));
-    }
-
-    /**
-     * Get a reference count for a variable, works best for objects.
-     *
-     * @param      $var
-     * @param bool $print
-     *
-     * @return int|mixed
-     */
-    protected function referencesCount($var, $print = false)
-    {
-        ob_start();
-        debug_zval_dump($var);
-        $dump    = ob_get_clean();
-        $matches = array();
-        preg_match('/refcount\(([0-9]+)/', $dump, $matches);
-        $count = isset($matches[1]) ? $matches[1] : 0;
-        $dump_first_line = trim(explode("\n", $dump, 2)[0]);
-
-        list($is_php56, $is_php70, $is_php71_plus) = [$this->isPhp56(), $this->isPhp70(), $this->isPhp71OrMore()];
-        $php_version   = PHP_VERSION;
-
-        /**
-         * Different output is encountered with debug_zval_dump() in different PHP Versions and depending
-         * on the variable type.
-         *
-         * The logic is below for correctness!!
-         *
-         * Usually we will substract 3 from the $count we get, one is for the call of this
-         * method and one is for the call to debug_zval_dump(), the last one is the variable it
-         * self as it reports it has one reference which is self, we do not want it.
-         *
-         * But the 3 is not always the case!!
-         */
-
-        if (is_object($var)) {
-            $subtract = 3;
-        } else {
-            $subtract = 1;
-            if ($is_php56) {
-                $subtract = 3;
-            } elseif ($is_php70) {
-                if (is_array($var)) {
-                    $subtract = 2;
-                } else {
-                    $subtract = 1;
-                }
-            } elseif ($is_php71_plus) {
-                if (is_array($var)) {
-                    $subtract = 3;
-                } else {
-                    $subtract = 1;
-                }
-            }
-        }
-
-
-        //3 references are added, including when calling debug_zval_dump()
-        $ret = $count - $subtract;
-        if ($print) {
-            fputs(STDERR,
-              "\nreferencesCount: {$dump_first_line}\nSubstract:[{$subtract}] RET:[{$ret}]\n\$php_version:[{$php_version}]\n\n");
-        }
-        return $ret;
-    }
-
     public function testSetupStrict()
     {
         $list = new TestBasicObjectsList;
@@ -240,38 +151,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         return $list;
     }
 
-    public function testReferenceTypes()
-    {
-        $this->referencesCount(5, 1);
-        $_v = 6;
-        $this->referencesCount($_v, 1);
-        $_b = $_a = 6;
-        $this->referencesCount($_b, 1);
-
-        $this->referencesCount(function () { return 'string ret';}, 1);
-        $_v = function () { return 'string ret';};
-        $this->referencesCount($_v, 1);
-        $_b = $_a = function () { return 'string ret';};
-        $this->referencesCount($_b, 1);
-
-
-        $this->referencesCount('bare string', 1);
-        $_v = 'string var';
-        $this->referencesCount($_v, 1);
-
-        $this->referencesCount(['aa'], 1);
-        $_v = ['vv'];
-        $this->referencesCount($_v, 1);
-        $_v[1] = 'vvvv';
-        $this->referencesCount($_v, 1);
-
-        $this->referencesCount(new stdClass(), 1);
-        $_v = new stdClass();
-        $this->referencesCount($_v, 1);
-        $_v->prop = 'vvvv';
-        $this->referencesCount($_v, 1);
-    }
-
     public function testReferences()
     {
         $list   = new \Dimsh\Models\Collections\Collection();
@@ -279,46 +158,32 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $list->add($this->getNewTestBasicObject());
         $this->assertFalse($this->isReference($list[0], $list[1]));
 
-        //        fputs(STDERR, '$this->referencesCount($list[0]): '. $this->referencesCount($list[0]) . "\n\n");
-
         $myObject                  = new TestBasicObject();
         $myObject->public_property = 3;
-
-        $this->assertEquals(0, $this->referencesCount($myObject));
-
         $list[] = $myObject;
-        $this->assertEquals(1, $this->referencesCount($myObject));
 
         $myObject->public_property = 6;
         $this->assertTrue($this->isReference($list[2], $myObject));
         $this->assertEquals($list[2]->getMyHash(), $myObject->getMyHash());
         $this->assertEquals(6, $list[2]->public_property);
-
-        $this->assertEquals(1, $this->referencesCount($list[2]));
-        unset($list);
-        $this->assertEquals(0, $this->referencesCount($myObject));
     }
 
     public function testReferences2MethodAppend()
     {
         $myObject = new TestBasicObject();
         $list     = $this->getListSetPropertyValue5MethodAppend($myObject);
-        $this->assertEquals(1, $this->referencesCount($myObject));
         $this->assertEquals(5, $myObject->public_property);
         $this->assertEquals(5, $list[0]->public_property);
 
         $list->rewind();
         $returnedObject = $list->current();
         $this->assertEquals(5, $returnedObject->public_property);
-        $this->assertEquals(2, $this->referencesCount($myObject));
 
         $this->assertTrue($this->isReference($myObject, $returnedObject));
 
         $returnedObject->public_property = 9;
         unset($list[0]);
-        $this->assertEquals(1, $this->referencesCount($myObject));
         unset($returnedObject);
-        $this->assertEquals(0, $this->referencesCount($myObject));
         $this->assertEquals(9, $myObject->public_property);
     }
 
@@ -326,45 +191,27 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
     {
         $myObject = new TestBasicObject();
         $list     = $this->getListSetPropertyValue5MethodAdd($myObject);
-        $this->assertEquals(1, $this->referencesCount($myObject));
         $this->assertEquals(5, $myObject->public_property);
         $this->assertEquals(5, $list[0]->public_property);
 
         $list->rewind();
         $returnedObject = $list->current();
         $this->assertEquals(5, $returnedObject->public_property);
-        $this->assertEquals(2, $this->referencesCount($myObject));
 
         $this->assertTrue($this->isReference($myObject, $returnedObject));
 
         $returnedObject->public_property = 9;
         unset($list[0]);
-        $this->assertEquals(1, $this->referencesCount($myObject));
         unset($returnedObject);
-        $this->assertEquals(0, $this->referencesCount($myObject));
         $this->assertEquals(9, $myObject->public_property);
     }
 
     public function testReferencesScalar()
     {
-
-        /*$_v = ['vv'];
-        $this->referencesCount($_v, 1);
-        $_v[1] = 'vvvv';
-        $this->referencesCount($_v, 1);
-        $this->referencesCount(['aa'], 1);
-
-        $_v = 'vv';
-        $this->referencesCount($_v, 1);
-        $this->referencesCount('aa', 1);*/
-
         $list = new \Dimsh\Models\Collections\Collection();
         $list->add("my string");
         $this->assertEquals("my string", $list[0]);
-        $this->assertEquals(0, $this->referencesCount($list[0]));
-        $this->assertEquals(0, $this->referencesCount($this->getArray()));
         $list->add($this->getArray());
-        $this->assertEquals(1, $this->referencesCount($list[1]));
         $array = $this->getArray();
         $this->assertFalse($this->isReference($list[1], $array));
 
@@ -378,7 +225,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
         $list  = new \Dimsh\Models\Collections\Collection();
         $array = $this->getArray();
-        $this->assertEquals(1, $this->referencesCount($array));
 
         $list->addByReference($array);
         $this->assertTrue($this->isReference($list[0], $array));
@@ -391,7 +237,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
         $this->assertTrue($this->isReference($zero, $array));
         $this->assertFalse($this->isReference($zero, $current));
-        $this->assertEquals(0, $this->referencesCount($current));
     }
 
     public function testSwapAndReferencesWithSwap()
@@ -405,7 +250,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $myObject = new TestBasicObject();
         $list[]   = $myObject;
 
-        $this->assertEquals(1, $this->referencesCount($myObject));
         $list->swap(1, 3);
         $this->assertEquals("my string", $list[0]);
         $this->assertEquals(5, $list[1]);
@@ -424,7 +268,6 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
         $myObject->public_property = 9;
 
-        $this->assertEquals(3, $this->referencesCount($myObject));
         $this->assertEquals(9, $clone1[5]->public_property);
         $this->assertTrue($this->isReference($clone1[5], $clone2[5]));
 
