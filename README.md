@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/idimsh/collection.svg?branch=master)](https://travis-ci.org/idimsh/collection)
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/idimsh/collection/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/idimsh/collection/?branch=master)
+[![Code Coverage](https://scrutinizer-ci.com/g/idimsh/collection/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/idimsh/collection/?branch=master)
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE)  
+
 # Collection: A Generic PHP Objects/Variables Holder and Iterator
 A library to store variables in an iterator, support some operations like sorting and swapping elements. 
 

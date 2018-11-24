@@ -12,14 +12,10 @@ namespace Dimsh\Models\Collections;
 /**
  * Class Collection
  *
- * @method {
- * } offsetGet();
- * @method {
- * } @current()
- * @method {
- * } @last()
- * @method {
- * } @first()
+ * @method {} offsetGet();
+ * @method {} @current()
+ * @method {} @last()
+ * @method {} @first()
  *
  * @package Dimsh\Models\Collections;
  */
