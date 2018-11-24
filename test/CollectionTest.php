@@ -2,8 +2,6 @@
 
 class CollectionTest extends \PHPUnit\Framework\TestCase
 {
-    use VladaHejda\AssertException;
-
     protected function getNewTestBasicObject()
     {
         return new TestBasicObject;
@@ -116,6 +114,30 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         return $same;
     }
 
+    protected function isPhp56()
+    {
+        static $cache = null;
+        return $cache !== null ?
+          $cache :
+          ($cache = version_compare(PHP_VERSION, '5.6.0', '>=') && version_compare(PHP_VERSION, '7.0.0', '<'));
+    }
+
+    protected function isPhp70()
+    {
+        static $cache = null;
+        return $cache !== null ?
+          $cache :
+          ($cache = version_compare(PHP_VERSION, '7.0.0', '>=') && version_compare(PHP_VERSION, '7.1.0', '<'));
+    }
+
+    protected function isPhp71OrMore()
+    {
+        static $cache = null;
+        return $cache !== null ?
+          $cache :
+          ($cache = version_compare(PHP_VERSION, '7.1.0', '>='));
+    }
+
     /**
      * Get a reference count for a variable, works best for objects.
      *
@@ -131,23 +153,66 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $dump    = ob_get_clean();
         $matches = array();
         preg_match('/refcount\(([0-9]+)/', $dump, $matches);
-        $count = $matches[1];
+        $count = isset($matches[1]) ? $matches[1] : 0;
+        $dump_first_line = trim(explode("\n", $dump, 2)[0]);
+
+        list($is_php56, $is_php70, $is_php71_plus) = [$this->isPhp56(), $this->isPhp70(), $this->isPhp71OrMore()];
+        $php_version   = PHP_VERSION;
+
+        /**
+         * Different output is encountered with debug_zval_dump() in different PHP Versions and depending
+         * on the variable type.
+         *
+         * The logic is below for correctness!!
+         *
+         * Usually we will substract 3 from the $count we get, one is for the call of this
+         * method and one is for the call to debug_zval_dump(), the last one is the variable it
+         * self as it reports it has one reference which is self, we do not want it.
+         *
+         * But the 3 is not always the case!!
+         */
+
+        if (is_object($var)) {
+            $subtract = 3;
+        } else {
+            $subtract = 1;
+            if ($is_php56) {
+                $subtract = 3;
+            } elseif ($is_php70) {
+                if (is_array($var)) {
+                    $subtract = 2;
+                } else {
+                    $subtract = 1;
+                }
+            } elseif ($is_php71_plus) {
+                if (is_array($var)) {
+                    $subtract = 3;
+                } else {
+                    $subtract = 1;
+                }
+            }
+        }
+
 
         //3 references are added, including when calling debug_zval_dump()
-        $ret = $count - (is_object($var) || is_array($var) ? 3 : 1);
+        $ret = $count - $subtract;
         if ($print) {
-            fputs(STDERR, "\nreferencesCount:\n{$dump}\nRET:[{$ret}]\n\n");
+            fputs(STDERR,
+              "\nreferencesCount: {$dump_first_line}\nSubstract:[{$subtract}] RET:[{$ret}]\n\$php_version:[{$php_version}]\n\n");
         }
         return $ret;
+    }
+
+    public function testSetupStrict()
+    {
+        $list = new TestBasicObjectsList;
+        $this->expectException(\Exception::class);
+        $list[] = 1;
     }
 
     public function testSetup()
     {
         $list = new TestBasicObjectsList;
-        $this->assertException(function () use (&$list) {
-            $list[] = 1;
-        });
-
         $this->assertEquals($list, $list->add(new TestBasicObject));
         $this->assertEquals(1, $list->count());
         $this->assertEquals(1, count($list));
@@ -173,6 +238,38 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         $myObject->public_property = 5;
         $list->add($myObject);
         return $list;
+    }
+
+    public function testReferenceTypes()
+    {
+        $this->referencesCount(5, 1);
+        $_v = 6;
+        $this->referencesCount($_v, 1);
+        $_b = $_a = 6;
+        $this->referencesCount($_b, 1);
+
+        $this->referencesCount(function () { return 'string ret';}, 1);
+        $_v = function () { return 'string ret';};
+        $this->referencesCount($_v, 1);
+        $_b = $_a = function () { return 'string ret';};
+        $this->referencesCount($_b, 1);
+
+
+        $this->referencesCount('bare string', 1);
+        $_v = 'string var';
+        $this->referencesCount($_v, 1);
+
+        $this->referencesCount(['aa'], 1);
+        $_v = ['vv'];
+        $this->referencesCount($_v, 1);
+        $_v[1] = 'vvvv';
+        $this->referencesCount($_v, 1);
+
+        $this->referencesCount(new stdClass(), 1);
+        $_v = new stdClass();
+        $this->referencesCount($_v, 1);
+        $_v->prop = 'vvvv';
+        $this->referencesCount($_v, 1);
     }
 
     public function testReferences()
@@ -250,10 +347,19 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     public function testReferencesScalar()
     {
+
+        /*$_v = ['vv'];
+        $this->referencesCount($_v, 1);
+        $_v[1] = 'vvvv';
+        $this->referencesCount($_v, 1);
+        $this->referencesCount(['aa'], 1);
+
+        $_v = 'vv';
+        $this->referencesCount($_v, 1);
+        $this->referencesCount('aa', 1);*/
+
         $list = new \Dimsh\Models\Collections\Collection();
-        $list->add((function () {
-            return "my string";
-        })());
+        $list->add("my string");
         $this->assertEquals("my string", $list[0]);
         $this->assertEquals(0, $this->referencesCount($list[0]));
         $this->assertEquals(0, $this->referencesCount($this->getArray()));
@@ -373,16 +479,16 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
         $list_diff = $list_multi_2->diffRecursive($list_multi_4);
         $this->assertEquals([
-          1  => 2,
-          3  => 6,
-          5  => 10,
+          1 => 2,
+          3 => 6,
+          5 => 10,
         ], $list_diff->toArray());
 
         $list_diff = $list_multi_4->diffRecursive($list_multi_2);
         $this->assertEquals([
-          3  => 12,
-          4  => 16,
-          5  => 20,
+          3 => 12,
+          4 => 16,
+          5 => 20,
         ], $list_diff->toArray());
     }
 }
