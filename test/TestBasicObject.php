@@ -1,5 +1,7 @@
 <?php
 
+namespace Dimsh\Models\Collections\Tests;
+
 class TestBasicObject
 {
     /**

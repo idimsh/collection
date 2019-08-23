@@ -1,24 +1,28 @@
 <?php
 
+namespace Dimsh\Models\Collections\Tests;
+
+use Dimsh\Models\Collections\Collection;
+
 /**
  * Class DefinitionsList
  *
- * @method \TestBasicObject offsetGet();
- * @method \TestBasicObject current()
- * @method \TestBasicObject last()
- * @method \TestBasicObject first()
+ * @method Dimsh\Models\Collections\Tests\TestBasicObject offsetGet();
+ * @method Dimsh\Models\Collections\Tests\TestBasicObject current()
+ * @method Dimsh\Models\Collections\Tests\TestBasicObject last()
+ * @method Dimsh\Models\Collections\Tests\TestBasicObject first()
  *
  */
-class TestBasicObjectsList extends \Dimsh\Models\Collections\Collection
+class TestBasicObjectsList extends Collection
 {
     /**
-     * @param \TestBasicObject $value
+     * @param Dimsh\Models\Collections\Tests\TestBasicObject $value
      *
      * @throws \Exception
      */
     protected function preAdd($value)
     {
-        if (!$value instanceof \TestBasicObject) {
+        if (!$value instanceof TestBasicObject) {
             throw new \Exception("TestBasicObjectsList can accept items of type TestBasicObject only");
         }
     }
