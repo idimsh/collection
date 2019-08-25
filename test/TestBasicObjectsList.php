@@ -1,22 +1,22 @@
 <?php
 
-namespace Dimsh\Models\Collections\Tests;
+namespace DimshTests\Models\Collections;
 
 use Dimsh\Models\Collections\Collection;
 
 /**
  * Class DefinitionsList
  *
- * @method Dimsh\Models\Collections\Tests\TestBasicObject offsetGet();
- * @method Dimsh\Models\Collections\Tests\TestBasicObject current()
- * @method Dimsh\Models\Collections\Tests\TestBasicObject last()
- * @method Dimsh\Models\Collections\Tests\TestBasicObject first()
+ * @method \DimshTests\Models\Collections\TestBasicObject offsetGet();
+ * @method \DimshTests\Models\Collections\TestBasicObject current()
+ * @method \DimshTests\Models\Collections\TestBasicObject last()
+ * @method \DimshTests\Models\Collections\TestBasicObject first()
  *
  */
 class TestBasicObjectsList extends Collection
 {
     /**
-     * @param Dimsh\Models\Collections\Tests\TestBasicObject $value
+     * @param \DimshTests\Models\Collections\TestBasicObject $value
      *
      * @throws \Exception
      */

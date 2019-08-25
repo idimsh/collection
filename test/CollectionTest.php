@@ -1,6 +1,6 @@
 <?php
 
-namespace Dimsh\Models\Collections\Tests;
+namespace DimshTests\Models\Collections;
 
 use Dimsh\Models\Collections\Collection;
 use PHPUnit\Framework\TestCase;
