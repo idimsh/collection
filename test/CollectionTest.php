@@ -131,13 +131,13 @@ class CollectionTest extends TestCase
         $list = new TestBasicObjectsList;
         $this->assertEquals($list, $list->add(new TestBasicObject));
         $this->assertEquals(1, $list->count());
-        $this->assertEquals(1, count($list));
+        $this->assertCount(1, $list);
         $this->assertInstanceOf(TestBasicObject::class, $list[0]);
-        $this->assertTrue(isset($list[0]));
+        $this->assertNotEmpty($list[0]);
         $this->assertFalse(isset($list[1]));
         unset($list[0]);
         $this->assertEquals(0, $list->count());
-        $this->assertEquals(0, count($list));
+        $this->assertCount(0, $list);
     }
 
     protected function getListSetPropertyValue5MethodAppend(TestBasicObject $myObject)
@@ -338,5 +338,113 @@ class CollectionTest extends TestCase
           4 => 16,
           5 => 20,
         ], $list_diff->toArray());
+    }
+
+    public function testOffsetGetOnNonExistedKey()
+    {
+        $collection = new Collection();
+
+        $this->assertNull($collection->offsetGet('non_existed_key'));
+    }
+
+    public function testPrev()
+    {
+        $collection = new Collection();
+        $collection[0] = 0;
+        $collection[1] = 1;
+        $collection[2] = 2;
+
+        $this->assertEquals(0, $collection->current());
+
+        $collection->next();
+
+        $this->assertEquals(1, $collection->current());
+
+        $collection->prev();
+
+        $this->assertEquals(0, $collection->current());
+    }
+
+    public function testValidOnEmptyCollection()
+    {
+        $collection = new Collection();
+
+        $this->assertFalse($collection->valid());
+    }
+
+    /**
+     * @expectedException        \Exception
+     * @expectedExceptionMessage Calling next or rewind is required after call to unset, current item can't be accessed otherwise because it is removed
+     */
+    public function testCurrentThrowAfterUnsetException()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection->offsetUnset(0);
+
+        $collection->current();
+    }
+
+    public function testLast()
+    {
+        $collection = new Collection();
+        $collection[0] = 0;
+        $collection[1] = 1;
+        $collection[2] = 2;
+
+        $this->assertEquals(2, $collection->last());
+    }
+
+    public function testLastOnEmptyCollection()
+    {
+        $collection = new Collection();
+
+        $this->assertNull($collection->last());
+    }
+
+    public function testFirst()
+    {
+        $collection = new Collection();
+        $collection[0] = 0;
+        $collection[1] = 1;
+        $collection[2] = 2;
+
+        $this->assertEquals(0, $collection->first());
+    }
+
+    public function testFirstOnEmptyCollection()
+    {
+        $collection = new Collection();
+
+        $this->assertNull($collection->first());
+    }
+
+    public function testKeys()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+
+        $this->assertEquals([0, 1], $collection->keys());
+    }
+
+    public function testMerge()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $anotherCollection = new Collection();
+        $collection[] = 3;
+
+        $resultMergedCollection = $collection->merge($anotherCollection);
+
+        $this->assertEquals([
+          0,
+          1,
+          2,
+          3,
+        ], $resultMergedCollection->toArray());
     }
 }
