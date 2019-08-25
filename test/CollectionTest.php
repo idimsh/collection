@@ -1,6 +1,11 @@
 <?php
 
-class CollectionTest extends \PHPUnit\Framework\TestCase
+namespace Dimsh\Models\Collections\Tests;
+
+use Dimsh\Models\Collections\Collection;
+use PHPUnit\Framework\TestCase;
+
+class CollectionTest extends TestCase
 {
     protected function getNewTestBasicObject()
     {
@@ -137,7 +142,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     protected function getListSetPropertyValue5MethodAppend(TestBasicObject $myObject)
     {
-        $list                      = new \Dimsh\Models\Collections\Collection();
+        $list                      = new Collection();
         $myObject->public_property = 5;
         $list[]                    = $myObject;
         return $list;
@@ -145,7 +150,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     protected function getListSetPropertyValue5MethodAdd(TestBasicObject $myObject)
     {
-        $list                      = new \Dimsh\Models\Collections\Collection();
+        $list                      = new Collection();
         $myObject->public_property = 5;
         $list->add($myObject);
         return $list;
@@ -153,7 +158,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     public function testReferences()
     {
-        $list   = new \Dimsh\Models\Collections\Collection();
+        $list   = new Collection();
         $list[] = $this->getNewTestBasicObject();
         $list->add($this->getNewTestBasicObject());
         $this->assertFalse($this->isReference($list[0], $list[1]));
@@ -208,7 +213,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     public function testReferencesScalar()
     {
-        $list = new \Dimsh\Models\Collections\Collection();
+        $list = new Collection();
         $list->add("my string");
         $this->assertEquals("my string", $list[0]);
         $list->add($this->getArray());
@@ -223,7 +228,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
         unset($list);
 
-        $list  = new \Dimsh\Models\Collections\Collection();
+        $list  = new Collection();
         $array = $this->getArray();
 
         $list->addByReference($array);
@@ -241,7 +246,7 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     public function testSwapAndReferencesWithSwap()
     {
-        $list     = new \Dimsh\Models\Collections\Collection();
+        $list     = new Collection();
         $list[]   = "my string";
         $list[]   = "another string";
         $list[]   = ["array item"];
@@ -278,8 +283,8 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
 
     public function testArrayFunctions()
     {
-        $list_multi_2_flipped = new \Dimsh\Models\Collections\Collection();
-        $list_multi_3_flipped = new \Dimsh\Models\Collections\Collection();
+        $list_multi_2_flipped = new Collection();
+        $list_multi_3_flipped = new Collection();
         for ($i = 1; $i < 6; $i++) {
             $list_multi_2_flipped[$i * 2] = $i;
             $list_multi_3_flipped[$i * 3] = $i;
@@ -313,8 +318,8 @@ class CollectionTest extends \PHPUnit\Framework\TestCase
         ], $list_intersect->toArray());
 
 
-        $list_multi_2 = new \Dimsh\Models\Collections\Collection();
-        $list_multi_4 = new \Dimsh\Models\Collections\Collection();
+        $list_multi_2 = new Collection();
+        $list_multi_4 = new Collection();
         for ($i = 1; $i < 6; $i++) {
             $list_multi_2[$i] = $i * 2;
             $list_multi_4[$i] = $i * 4;

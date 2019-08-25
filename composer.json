@@ -31,18 +31,23 @@
     }
   },
   "autoload-dev": {
-    "classmap": [
-      "test/TestBasicObject.php",
-      "test/TestBasicObjectsList.php"
-    ]
+    "psr-4": {
+      "Dimsh\\Models\\Collections\\Tests\\": "test/"
+    }
   },
   "scripts": {
-    "test": [
-      "phpunit test/",
-      "phpcs -p src"
+    "test": "phpunit --configuration phpunit.xml",
+    "test-coverage": "phpunit --configuration phpunit.xml --coverage-text --coverage-clover=coverage.clover",
+    "check-style": "phpcs --standard=phpcs.xml",
+    "check-all": [
+      "@check-style",
+      "@test-coverage"
     ]
   },
   "scripts-descriptions": {
-    "test": "Run all tests and quality checks"
+    "test": "Run unit tests",
+    "test-coverage": "Run unit tests and generate coverage clover",
+    "check-style": "Check specific coding style",
+    "check-all": "Run @check-style and @test-coverage scripts"
   }
 }
