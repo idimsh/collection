@@ -1,6 +1,6 @@
 <?php
 
-namespace Dimsh\Models\Collections\Tests;
+namespace DimshTests\Models\Collections;
 
 class TestBasicObject
 {
