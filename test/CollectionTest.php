@@ -447,4 +447,140 @@ class CollectionTest extends TestCase
           3,
         ], $resultMergedCollection->toArray());
     }
+
+    public function testSwapOnSameOffsetPosition()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->assertInstanceOf(Collection::class, $collection->swap(1, 1));
+        $this->assertEquals([
+          0,
+          1,
+          2,
+        ], $collection->toArray());
+    }
+
+    public function testSwapThrowExceptionOnInvalidPosition()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->expectException(\Exception::class);
+
+        $collection->swap(3, 2);
+    }
+
+    public function testSwapReorderOnSameOffsetPosition()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->assertInstanceOf(Collection::class, $collection->swapReorder(1, 1));
+        $this->assertEquals([
+          0,
+          1,
+          2,
+        ], $collection->toArray());
+    }
+
+    public function testSwapReorderThrowExceptionOnInvalidPosition()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->expectException(\Exception::class);
+
+        $collection->swapReorder(3, 2);
+    }
+
+    public function testByPositionGet()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->assertEquals(2, $collection->byPositionGet(2));
+    }
+
+    public function testByPositionGetOnOutOfRangePosition()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->assertNull($collection->byPositionGet(3));
+    }
+
+    public function testIsEmptyOnEmptyCollection()
+    {
+        $collection = new Collection();
+
+        $this->assertTrue($collection->isEmpty());
+    }
+
+    public function testIsEmptyOnNotEmptyCollection()
+    {
+        $collection = new Collection();
+        $collection[] = 0;
+        $collection[] = 1;
+        $collection[] = 2;
+
+        $this->assertFalse($collection->isEmpty());
+    }
+
+    public function testDiffRecursiveAssocOnValueItems()
+    {
+        $anotherCollection = new Collection();
+        $anotherCollection['key3'] = 0;
+        $anotherCollection['key4'] = 1;
+        $anotherCollection['key5'] = 2;
+
+        $collection = new Collection();
+        $collection['key0'] = 0;
+        $collection['key1'] = 1;
+        $collection['key2'] = 2;
+
+        $this->assertEquals($collection->toArray(), $collection->diffRecursiveAssoc($anotherCollection)->toArray());
+    }
+
+    public function testDiffRecursiveAssocOnCollections()
+    {
+        $anotherCollection = new Collection();
+        $anotherCollection[] = 0;
+        $anotherCollection[] = 1;
+        $anotherCollection[] = 2;
+
+        $collection = new Collection();
+        $collection['key0'] = $anotherCollection;
+        $collection['key1'] = $anotherCollection;
+        $collection['key2'] = $anotherCollection;
+
+        $this->assertEquals([], $collection->diffRecursiveAssoc($collection)->toArray());
+    }
+
+    public function testDiffRecursiveAssocOnArrayValues()
+    {
+        $collection = new Collection();
+        $collection['key0'] = [0, 1, 2, 3];
+        $collection['key1'] = [0, 1, 2, 3];
+        $collection['key2'] = [0, 1, 2, 3];
+
+        $anotherCollection = new Collection();
+        $anotherCollection[] = 0;
+        $anotherCollection[] = 1;
+        $anotherCollection[] = 2;
+
+        $this->assertEquals($collection->toArray(), $collection->diffRecursiveAssoc($anotherCollection)->toArray());
+    }
 }
