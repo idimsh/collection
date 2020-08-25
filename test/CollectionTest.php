@@ -130,13 +130,13 @@ class CollectionTest extends TestCase
     {
         $list = new TestBasicObjectsList;
         $this->assertEquals($list, $list->add(new TestBasicObject));
-        $this->assertEquals(1, $list->count());
+        $this->assertSame(1, $list->count());
         $this->assertCount(1, $list);
         $this->assertInstanceOf(TestBasicObject::class, $list[0]);
         $this->assertNotEmpty($list[0]);
         $this->assertFalse(isset($list[1]));
         unset($list[0]);
-        $this->assertEquals(0, $list->count());
+        $this->assertSame(0, $list->count());
         $this->assertCount(0, $list);
     }
 
@@ -170,52 +170,52 @@ class CollectionTest extends TestCase
         $myObject->public_property = 6;
         $this->assertTrue($this->isReference($list[2], $myObject));
         $this->assertEquals($list[2]->getMyHash(), $myObject->getMyHash());
-        $this->assertEquals(6, $list[2]->public_property);
+        $this->assertSame(6, $list[2]->public_property);
     }
 
     public function testReferences2MethodAppend()
     {
         $myObject = new TestBasicObject();
         $list     = $this->getListSetPropertyValue5MethodAppend($myObject);
-        $this->assertEquals(5, $myObject->public_property);
-        $this->assertEquals(5, $list[0]->public_property);
+        $this->assertSame(5, $myObject->public_property);
+        $this->assertSame(5, $list[0]->public_property);
 
         $list->rewind();
         $returnedObject = $list->current();
-        $this->assertEquals(5, $returnedObject->public_property);
+        $this->assertSame(5, $returnedObject->public_property);
 
         $this->assertTrue($this->isReference($myObject, $returnedObject));
 
         $returnedObject->public_property = 9;
         unset($list[0]);
         unset($returnedObject);
-        $this->assertEquals(9, $myObject->public_property);
+        $this->assertSame(9, $myObject->public_property);
     }
 
     public function testReferences2MethodAdd()
     {
         $myObject = new TestBasicObject();
         $list     = $this->getListSetPropertyValue5MethodAdd($myObject);
-        $this->assertEquals(5, $myObject->public_property);
-        $this->assertEquals(5, $list[0]->public_property);
+        $this->assertSame(5, $myObject->public_property);
+        $this->assertSame(5, $list[0]->public_property);
 
         $list->rewind();
         $returnedObject = $list->current();
-        $this->assertEquals(5, $returnedObject->public_property);
+        $this->assertSame(5, $returnedObject->public_property);
 
         $this->assertTrue($this->isReference($myObject, $returnedObject));
 
         $returnedObject->public_property = 9;
         unset($list[0]);
         unset($returnedObject);
-        $this->assertEquals(9, $myObject->public_property);
+        $this->assertSame(9, $myObject->public_property);
     }
 
     public function testReferencesScalar()
     {
         $list = new Collection();
         $list->add("my string");
-        $this->assertEquals("my string", $list[0]);
+        $this->assertSame("my string", $list[0]);
         $list->add($this->getArray());
         $array = $this->getArray();
         $this->assertFalse($this->isReference($list[1], $array));
@@ -256,11 +256,10 @@ class CollectionTest extends TestCase
         $list[]   = $myObject;
 
         $list->swap(1, 3);
-        $this->assertEquals("my string", $list[0]);
-        $this->assertEquals(5, $list[1]);
-        $this->assertEquals("5", $list[1]);
+        $this->assertSame("my string", $list[0]);
+        $this->assertSame(5, $list[1]);
         $this->assertEquals(["array item"], $list[2]);
-        $this->assertEquals("another string", $list[3]);
+        $this->assertSame("another string", $list[3]);
 
         $clone1 = clone $list;
         $clone2 = clone $list;
@@ -273,7 +272,7 @@ class CollectionTest extends TestCase
 
         $myObject->public_property = 9;
 
-        $this->assertEquals(9, $clone1[5]->public_property);
+        $this->assertSame(9, $clone1[5]->public_property);
         $this->assertTrue($this->isReference($clone1[5], $clone2[5]));
 
         $clone1->swap(0, 5);
@@ -354,15 +353,15 @@ class CollectionTest extends TestCase
         $collection[1] = 1;
         $collection[2] = 2;
 
-        $this->assertEquals(0, $collection->current());
+        $this->assertSame(0, $collection->current());
 
         $collection->next();
 
-        $this->assertEquals(1, $collection->current());
+        $this->assertSame(1, $collection->current());
 
         $collection->prev();
 
-        $this->assertEquals(0, $collection->current());
+        $this->assertSame(0, $collection->current());
     }
 
     public function testValidOnEmptyCollection()
@@ -392,7 +391,7 @@ class CollectionTest extends TestCase
         $collection[1] = 1;
         $collection[2] = 2;
 
-        $this->assertEquals(2, $collection->last());
+        $this->assertSame(2, $collection->last());
     }
 
     public function testLastOnEmptyCollection()
@@ -409,7 +408,7 @@ class CollectionTest extends TestCase
         $collection[1] = 1;
         $collection[2] = 2;
 
-        $this->assertEquals(0, $collection->first());
+        $this->assertSame(0, $collection->first());
     }
 
     public function testFirstOnEmptyCollection()
@@ -509,7 +508,7 @@ class CollectionTest extends TestCase
         $collection[] = 1;
         $collection[] = 2;
 
-        $this->assertEquals(2, $collection->byPositionGet(2));
+        $this->assertSame(2, $collection->byPositionGet(2));
     }
 
     public function testByPositionGetOnOutOfRangePosition()
